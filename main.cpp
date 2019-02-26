@@ -6,28 +6,28 @@
 #include <vector>
 
 using namespace cv;
-using std::cout; using std::cerr; using std::endl;
+using std::cout; using std::cerr; using std::endl; using std::vector;
 
 class Feed{
 public:
 	int cameraNo;
-	Mat frame;
+	Mat3b frame;
 	
 	Feed(int c_no)
 		:cameraNo(c_no)
 	{
 	}
-	void setFrame(int i, std::vector<cv::Mat> *feedArray);
+	void setFrame(int i, std::vector<cv::Mat3b>* feedArray);
 	
-	~Feed() {
-
-	}
+	~Feed();
 };
-void Feed::setFrame(int i, std::vector<cv::Mat> *feedArray) {
+void Feed::setFrame(int i, std::vector<cv::Mat3b>* feedArray) {
 	VideoCapture capture(i);
 	capture >> frame;
 	feedArray->push_back(frame);
-	
+	return;
+}
+Feed::~Feed() {
 }
 
 int main(int, char**)
@@ -39,10 +39,10 @@ int main(int, char**)
 	VideoCapture capture0(0); // open the first camera
 	VideoCapture capture1(1);
 	*/
-	Mat finalFrame;
-	VideoCapture capture0(0);
-	//int cams[] = { 0, 0, 0, 0, 0, 0 };
-	std::vector<cv::Mat> feedArray;
+	
+	//VideoCapture capture0(0);
+	
+	
 	std::vector<Feed> cams;
 	
 	for (int i = 0; i < 2; ++i) {
@@ -52,11 +52,13 @@ int main(int, char**)
 			cout << "after emplace i = " << i << endl;
 		}
 	}
-	if (!capture0.isOpened())
-	{
-		cerr << "ERROR: Can't initialize camera capture" << endl;
-		return 1;
-	}
+	//if (!capture0.isOpened())
+	//{
+	//	cerr << "ERROR: Can't initialize camera capture" << endl;
+	//	return 1;
+	//}
+	vector<Mat3b> feedArray;
+	Mat3b finalFrame;
 
 	for (;;)
 	{
@@ -65,9 +67,6 @@ int main(int, char**)
 			i.setFrame(i.cameraNo, &feedArray);
 
 		}
-		/*capture0 >> frame1; // read the next frame from camera
-		capture1 >> frame2;*/
-
 		hconcat(feedArray, finalFrame);
 		if (finalFrame.empty())
 		{
@@ -75,11 +74,10 @@ int main(int, char**)
 			break;
 		}
 		imshow("Frame", finalFrame);
-		
-		int key = waitKey(1);
-		if (key == 27/*ESC*/)
-			break;
+		feedArray.clear();
+		char key = waitKey(1);
+		if (char(key) == 27/*ESC*/) break;
 	}
-	
+	cams.clear();
 	return 0;
 }
