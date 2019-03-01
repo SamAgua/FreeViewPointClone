@@ -8,27 +8,7 @@
 using namespace cv;
 using std::cout; using std::cerr; using std::endl; using std::vector;
 
-class Feed{
-public:
-	int cameraNo;
-	Mat3b frame;
-	
-	Feed(int c_no)
-		:cameraNo(c_no)
-	{
-	}
-	void setFrame(int i, std::vector<cv::Mat3b>* feedArray);
-	
-	~Feed();
-};
-void Feed::setFrame(int i, std::vector<cv::Mat3b>* feedArray) {
-	VideoCapture capture(i);
-	capture >> frame;
-	feedArray->push_back(frame);
-	return;
-}
-Feed::~Feed() {
-}
+
 
 int main(int, char**)
 {
@@ -39,42 +19,64 @@ int main(int, char**)
 	VideoCapture capture0(0); // open the first camera
 	VideoCapture capture1(1);
 	*/
-	
+
 	//VideoCapture capture0(0);
-	
-	
-	std::vector<Feed> cams;
-	
+
+	std::vector<int> cams{ 0,0,0,0,0,0 };
+	int numCams = 0;
+
 	for (int i = 0; i < 2; ++i) {
 		VideoCapture capture0(i);
 		if (capture0.isOpened()) {
-			cams.emplace_back(i);
+			cams[i] = 1;
+			numCams++;
 			cout << "after emplace i = " << i << endl;
+			cout << "after emplace numCams = " << numCams << endl;
 		}
 	}
-	//if (!capture0.isOpened())
-	//{
-	//	cerr << "ERROR: Can't initialize camera capture" << endl;
-	//	return 1;
-	//}
-	vector<Mat3b> feedArray;
-	Mat3b finalFrame;
+	//vector<Mat3b> feedArray;
+	//Mat3b finalFrame;
+	VideoCapture capture1(0);
+	VideoCapture capture2(1);
+	VideoCapture capture3(2);
+	VideoCapture capture4(3);
+	VideoCapture capture5(4);
+	VideoCapture capture6(5);
+	Mat frame1;
+	Mat frame2;
+	Mat frame3;
+	Mat frame4;
+	Mat frame5;
+	Mat frame6;
+	Mat finalFrame;
+	
 
 	for (;;)
 	{
-		for (auto i : cams) {
-			cout << "cams i.no" << i.cameraNo << endl;
-			i.setFrame(i.cameraNo, &feedArray);
-
-		}
-		hconcat(feedArray, finalFrame);
-		if (finalFrame.empty())
-		{
-			cerr << "ERROR: Can't grab camera frame." << endl;
+		//Mat3b finalFrame;
+		switch (numCams) {
+		case 0: cout << "no cams detected" << endl;
+			exit(0);
+			break;
+		case 1: {
+			capture1 >> frame1;
+			imshow("oneFrame", frame1);
 			break;
 		}
-		imshow("Frame", finalFrame);
-		feedArray.clear();
+		case 2: {
+			
+			capture1;
+			capture2;
+			
+			
+			capture1 >> frame1;
+			capture2 >> frame2;
+			std::vector<Mat> matArray = { frame1, frame2 };
+			hconcat(matArray, finalFrame);
+			imshow("twoFrame", finalFrame);
+			}
+		}
+		
 		char key = waitKey(1);
 		if (char(key) == 27/*ESC*/) break;
 	}
