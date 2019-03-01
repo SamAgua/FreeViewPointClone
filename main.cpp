@@ -25,15 +25,18 @@ int main(int, char**)
 	std::vector<int> cams{ 0,0,0,0,0,0 };
 	int numCams = 0;
 
-	for (int i = 0; i < 2; ++i) {
+	for (int i = 0; i < 6; ++i) {
 		VideoCapture capture0(i);
 		if (capture0.isOpened()) {
 			cams[i] = 1;
 			numCams++;
 			cout << "after emplace i = " << i << endl;
-			cout << "after emplace numCams = " << numCams << endl;
+			//cout << "after emplace numCams = " << numCams << endl;
 		}
 	}
+	
+	numCams--;
+	cout << "numCams: " << numCams << endl;
 	//vector<Mat3b> feedArray;
 	//Mat3b finalFrame;
 	VideoCapture capture1(0);
