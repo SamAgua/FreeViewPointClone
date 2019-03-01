@@ -1,8 +1,10 @@
 #include <opencv2/core.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/stitching.hpp>
 #include <opencv2/imgproc.hpp>  // cv::Canny()
 #include <iostream>
+#include <thread>
 #include <vector>
 
 using namespace cv;
@@ -23,7 +25,7 @@ public:
 };
 void Feed::setFrame(int i, std::vector<cv::Mat3b>* feedArray) {
 	VideoCapture capture(i);
-	capture >> frame;
+	std::thread(capture >> frame);
 	feedArray->push_back(frame);
 	return;
 }
@@ -41,9 +43,12 @@ int main(int, char**)
 	*/
 	
 	//VideoCapture capture0(0);
-	
+	bool try_use_gpu = false;
 	
 	std::vector<Feed> cams;
+	Stitcher::Mode mode = Stitcher::PANORAMA;
+
+	Ptr<Stitcher> stitcher = Stitcher::create(mode);
 	
 	for (int i = 0; i < 2; ++i) {
 		VideoCapture capture0(i);
@@ -59,13 +64,14 @@ int main(int, char**)
 	//}
 	vector<Mat3b> feedArray;
 	Mat3b finalFrame;
+	Mat3b stitchedImage;
 
 	for (;;)
 	{
 		for (auto i : cams) {
 			cout << "cams i.no" << i.cameraNo << endl;
 			i.setFrame(i.cameraNo, &feedArray);
-
+			std::thread first(stitcher->stitch(i.frame, stitchedImage));
 		}
 		hconcat(feedArray, finalFrame);
 		if (finalFrame.empty())
