@@ -44,7 +44,7 @@ int main() {
 		switch (key) {
 		case 32: {
 			if (pause == true)
-				runStream();
+				thread t1(runStream);
 			else
 				stopStream();
 			break;
