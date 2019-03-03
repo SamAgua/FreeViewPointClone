@@ -4,86 +4,409 @@
 #include <opencv2/stitching.hpp>
 #include <opencv2/imgproc.hpp>  // cv::Canny()
 #include <iostream>
-#include <thread>
 #include <vector>
 
 using namespace cv;
 using std::cout; using std::cerr; using std::endl; using std::vector;
+using namespace std;
+//Assigns cameras to variables
 
-class Feed{
-public:
-	int cameraNo;
-	Mat3b frame;
-	
-	Feed(int c_no)
-		:cameraNo(c_no)
-	{
+VideoCapture capture1(0);
+VideoCapture capture2(1);
+VideoCapture capture3(2);
+VideoCapture capture4(3);
+VideoCapture capture5(4);
+VideoCapture capture6(5);
+Mat blueFrame;
+Mat frame1;
+Mat frame2;
+Mat frame3;
+Mat frame4;
+Mat frame5;
+Mat frame6;
+Mat top;
+Mat bot;
+std::vector<Mat> matArray1;
+std::vector<Mat> matArray2;
+std::vector<Mat> matArray3;
+std::vector<Mat> stitchedArray;
+Mat3b finalFrame;
+//Creates the frame to hold the feed
+double frameRatio = 0.6;
+
+int camCount() {
+	int numCams = 0;
+	double frameRatio = 0.6;
+	cout << "checking for cams" << endl;
+
+	for (int i = 0; i < 7; ++i) {
+		VideoCapture capture0(i);
+		if (capture0.isOpened()) {
+			numCams++;
+		}
 	}
-	void setFrame(int i, std::vector<cv::Mat3b>* feedArray);
-	
-	~Feed();
-};
-void Feed::setFrame(int i, std::vector<cv::Mat3b>* feedArray) {
-	VideoCapture capture(i);
-	std::thread(capture >> frame);
-	feedArray->push_back(frame);
-	return;
+	return numCams;
 }
-Feed::~Feed() {
+
+void displayCams(int numCams) {
+	blueFrame = imread("Bb_blue.jpg", IMREAD_COLOR);
+	for (;;)
+	{
+		//Mat3b finalFrame;
+		switch (numCams) {
+		case 0: cout << "no cams detected" << endl;
+			exit(0);
+			break;
+		case 1: {
+			std::thread thread1 (capture1 >> frame1);
+			resize(frame1, frame1, Size(), frameRatio, frameRatio);
+			resize(blueFrame, blueFrame, Size(frame1.cols, frame1.rows), 0, 0);
+			frame2 = blueFrame;
+			frame3 = blueFrame;
+			frame4 = blueFrame;
+			frame5 = blueFrame;
+			frame6 = blueFrame;
+			matArray1 = { frame1, frame2, frame3 };
+			matArray2 = { frame4, frame5, frame6 };
+			hconcat(matArray1, top);
+			hconcat(matArray2, bot);
+			vconcat(top, bot, finalFrame);
+			//namedWindow("cam1", WINDOW_AUTOSIZE);
+			imshow("Camera Feed", finalFrame);
+			break;
+		}
+		case 2: {
+			std::thread thread1 (capture1 >> frame1);
+			std::thread thread2 (capture2 >> frame2);
+			resize(frame1, frame1, Size(), frameRatio, frameRatio);
+			resize(blueFrame, blueFrame, Size(frame1.cols, frame1.rows), 0, 0);
+			resize(frame2, frame2, Size(frame1.cols, frame1.rows), 0, 0);
+			frame3 = blueFrame;
+			frame4 = blueFrame;
+			frame5 = blueFrame;
+			frame6 = blueFrame;
+			matArray1 = { frame1, frame2, frame3 };
+			matArray2 = { frame4, frame5, frame6 };
+			hconcat(matArray1, top);
+			hconcat(matArray2, bot);
+			vconcat(top, bot, finalFrame);
+			//namedWindow("cam1", WINDOW_AUTOSIZE);
+			imshow("Camera Feed", finalFrame);
+			break;
+		}
+		case 3: {
+			std::thread thread1 (capture1 >> frame1);
+			std::thread thread2 (capture2 >> frame2);
+			std::thread thread3 (capture3 >> frame3);
+			resize(frame1, frame1, Size(), frameRatio, frameRatio);
+			resize(blueFrame, blueFrame, Size(frame1.cols, frame1.rows), 0, 0);
+			resize(frame2, frame2, Size(frame1.cols, frame1.rows), 0, 0);
+			resize(frame3, frame3, Size(frame1.cols, frame1.rows), 0, 0);
+			frame4 = blueFrame;
+			frame5 = blueFrame;
+			frame6 = blueFrame;
+			matArray1 = { frame1, frame2, frame3 };
+			matArray2 = { frame4, frame5, frame6 };
+			hconcat(matArray1, top);
+			hconcat(matArray2, bot);
+			vconcat(top, bot, finalFrame);
+			//namedWindow("cam1", WINDOW_AUTOSIZE);
+			imshow("Camera Feed", finalFrame);
+			break;
+		}
+		case 4: {
+			std::thread thread1 (capture1 >> frame1);
+			std::thread thread2 (capture2 >> frame2);
+			std::thread thread3 (capture3 >> frame3);
+			std::thread thread4 (capture4 >> frame4);
+			resize(frame1, frame1, Size(), frameRatio, frameRatio);
+			resize(blueFrame, blueFrame, Size(frame1.cols, frame1.rows), 0, 0);
+			resize(frame2, frame2, Size(frame1.cols, frame1.rows), 0, 0);
+			resize(frame3, frame3, Size(frame1.cols, frame1.rows), 0, 0);
+			resize(frame4, frame4, Size(frame1.cols, frame1.rows), 0, 0);
+			frame5 = blueFrame;
+			frame6 = blueFrame;
+			matArray1 = { frame1, frame2, frame3 };
+			matArray2 = { frame4, frame5, frame6 };
+			hconcat(matArray1, top);
+			hconcat(matArray2, bot);
+			vconcat(top, bot, finalFrame);
+			//namedWindow("cam1", WINDOW_AUTOSIZE);
+			imshow("Camera Feed", finalFrame);
+			break;
+		}
+		case 5: {
+			std::thread thread1 (capture1 >> frame1);
+			std::thread thread2 (capture2 >> frame2);
+			std::thread thread3 (capture3 >> frame3);
+			std::thread thread4 (capture4 >> frame4);
+			std::thread thread5 (capture5 >> frame5);
+			resize(frame1, frame1, Size(), frameRatio, frameRatio);
+			resize(blueFrame, blueFrame, Size(frame1.cols, frame1.rows), 0, 0);
+			resize(frame2, frame2, Size(frame1.cols, frame1.rows), 0, 0);
+			resize(frame3, frame3, Size(frame1.cols, frame1.rows), 0, 0);
+			resize(frame4, frame4, Size(frame1.cols, frame1.rows), 0, 0);
+			resize(frame5, frame5, Size(frame1.cols, frame1.rows), 0, 0);
+			frame6 = blueFrame;
+			matArray1 = { frame1, frame2, frame3 };
+			matArray2 = { frame4, frame5, frame6 };
+			hconcat(matArray1, top);
+			hconcat(matArray2, bot);
+			vconcat(top, bot, finalFrame);
+			//namedWindow("cam1", WINDOW_AUTOSIZE);
+			imshow("Camera Feed", finalFrame);
+			break;
+		}
+		case 6: {
+			std::thread thread1 (capture1 >> frame1);
+			std::thread thread2 (capture2 >> frame2);
+			std::thread thread3 (capture3 >> frame3);
+			std::thread thread4 (capture4 >> frame4);
+			std::thread thread5 (capture5 >> frame5);
+			std::thread thread6 (capture6 >> frame6);
+			resize(frame1, frame1, Size(), frameRatio, frameRatio);
+			resize(frame2, frame2, Size(frame1.cols, frame1.rows), 0, 0);
+			resize(frame3, frame3, Size(frame1.cols, frame1.rows), 0, 0);
+			resize(frame4, frame4, Size(frame1.cols, frame1.rows), 0, 0);
+			resize(frame5, frame5, Size(frame1.cols, frame1.rows), 0, 0);
+			resize(frame6, frame6, Size(frame1.cols, frame1.rows), 0, 0);
+			matArray1 = { frame1, frame2, frame3 };
+			matArray2 = { frame4, frame5, frame6 };
+			hconcat(matArray1, top);
+			hconcat(matArray2, bot);
+			vconcat(top, bot, finalFrame);
+			//namedWindow("cam1", WINDOW_AUTOSIZE);
+			imshow("Camera Feed", finalFrame);
+			break;
+		}
+		}
+		char key = waitKey(1);
+		if (char(key) == 27/*ESC*/)
+			break;
+	}
+
+}
+//cam0 - cam5 methods for displaying individual camera feeds. This can be used later for camera selection GUI
+
+void cam1() {
+	while (true) {
+		if (capture1.isOpened()) { //avoid reading from an unopened device
+			capture1.read(frame1); //Reads frame
+			imshow("Camera Feed", frame1); //Display Frame
+		}
+		else {
+			break; // If no camera, breaks from method
+		}
+		int keypress = waitKey(1); //saving the pressed key
+		if (keypress == 27) {//if pressed Esc key breaks from method
+			break;
+		}
+	}
+}
+void cam2() {
+	while (true) {
+		if (capture2.isOpened()) { //avoid reading from an unopened device
+			capture2.read(frame2); //Reads frame
+			imshow("Camera Feed", frame2); //Display Frame
+		}
+		else {
+			break; // If no camera, breaks from method
+		}
+		int keypress = waitKey(1); //saving the pressed key
+		if (keypress == 27) {//if pressed Esc key breaks from method
+			break;
+		}
+	}
+}
+void cam3() {
+	while (true) {
+		if (capture3.isOpened()) { //avoid reading from an unopened device
+			capture3.read(frame3); //Reads frame
+			imshow("Camera Feed", frame3); //Display Frame
+		}
+		else {
+			break; // If no camera, breaks from method
+		}
+		int keypress = waitKey(1); //saving the pressed key
+		if (keypress == 27) {//if pressed Esc key breaks from method
+			break;
+		}
+	}
+}
+void cam4() {
+	while (true) {
+		if (capture4.isOpened()) { //avoid reading from an unopened device
+			capture4.read(frame4); //Reads frame
+			imshow("Camera Feed", frame4); //Display Frame
+		}
+		else {
+			break; // If no camera, breaks from method
+		}
+		int keypress = waitKey(1); //saving the pressed key
+		if (keypress == 27) {//if pressed Esc key breaks from method
+			break;
+		}
+	}
+}
+void cam5() {
+	while (true) {
+		if (capture5.isOpened()) { //avoid reading from an unopened device
+			capture5.read(frame5); //Reads frame
+			imshow("Camera Feed", frame5); //Display Frame
+		}
+		else {
+			break; // If no camera, breaks from method
+		}
+		int keypress = waitKey(1); //saving the pressed key
+		if (keypress == 27) {//if pressed Esc key breaks from method
+			break;
+		}
+	}
+
+}
+void cam6() {
+	while (true) {
+		if (capture6.isOpened()) { //avoid reading from an unopened device
+			capture6.read(frame6); //Reads frame
+			imshow("Camera Feed", frame6); //Display Frame
+		}
+		else {
+			break; // If no camera, breaks from method
+		}
+		int keypress = waitKey(1); //saving the pressed key
+		if (keypress == 27) {//if pressed Esc key breaks from method
+			break;
+		}
+	}
 }
 
 int main(int, char**)
 {
-	/*
-	Mat frame1;
-	Mat frame2;
-	cout << "Opening camera..." << endl;
-	VideoCapture capture0(0); // open the first camera
-	VideoCapture capture1(1);
-	*/
-	
-	//VideoCapture capture0(0);
-	bool try_use_gpu = false;
-	
-	std::vector<Feed> cams;
-	Stitcher::Mode mode = Stitcher::PANORAMA;
+	int numCams = camCount();
+	cout << "Open Cams = " << numCams << endl;
 
-	Ptr<Stitcher> stitcher = Stitcher::create(mode);
-	
-	for (int i = 0; i < 2; ++i) {
-		VideoCapture capture0(i);
-		if (capture0.isOpened()) {
-			cams.emplace_back(i);
-			cout << "after emplace i = " << i << endl;
-		}
+	//Instructions
+	cout << "Once opened, press ESC to scroll through cameras" << endl;
+	//Endlessly scroll through loop using ESC
+	while (true) {
+		//displayCams(numCams);
+		stitchedView(numCams);
+		cam1();
+		cam2();
+		cam3();
+		cam4();
+		cam5();
+		cam6();
 	}
-	//if (!capture0.isOpened())
-	//{
-	//	cerr << "ERROR: Can't initialize camera capture" << endl;
-	//	return 1;
-	//}
-	vector<Mat3b> feedArray;
-	Mat3b finalFrame;
-	Mat3b stitchedImage;
+	return 0;
+}
+
+void stitchedView(int numCams) {
+	Stitcher::Mode mode = Stitcher::PANORAMA;
+	Ptr<Stitcher> stitcher = Stitcher::create(mode);
+	Mat3b stitchedFrame1, stitchedFrame2, stitchedFrame3;
 
 	for (;;)
 	{
-		for (auto i : cams) {
-			cout << "cams i.no" << i.cameraNo << endl;
-			i.setFrame(i.cameraNo, &feedArray);
-			std::thread first(stitcher->stitch(i.frame, stitchedImage));
-		}
-		hconcat(feedArray, finalFrame);
-		if (finalFrame.empty())
-		{
-			cerr << "ERROR: Can't grab camera frame." << endl;
+		//Mat3b finalFrame;
+		switch (numCams) {
+		case 0: cout << "no cams detected" << endl;
+			exit(0);
+			break;
+		case 1: {
+			std::thread thread1(capture1 >> finalFrame);
+			//namedWindow("cam1", WINDOW_AUTOSIZE);
+			imshow("Camera Feed", finalFrame);
 			break;
 		}
-		imshow("Frame", finalFrame);
-		feedArray.clear();
+		case 2: {
+			std::thread thread1(capture1 >> frame1);
+			std::thread thread2(capture2 >> frame2);
+			thread1.join(); thread2.join();
+			stitchedArray = { frame1, frame2 };
+			std::thread thread7(stitcher->stitch(stitchedArray, stitchedFrame1));
+			thread7.join();
+			//namedWindow("cam1", WINDOW_AUTOSIZE);
+			imshow("Camera Feed", finalFrame);
+			break;
+		}
+		case 3: {
+			std::thread thread1(capture1 >> frame1);
+			std::thread thread2(capture2 >> frame2);
+			std::thread thread3(capture3 >> frame3);
+			thread1.join(); thread2.join(); thread3.join();
+			stitchedArray = { frame1, frame2, frame3 };
+			std::thread thread7(stitcher->stitch(matArray1, stitchedFrame1));
+			thread7.join();
+			std::thread thread10(stitcher->stitch(stitchedArray, finalFrame));
+			thread10.join();
+			//namedWindow("cam1", WINDOW_AUTOSIZE);
+			imshow("Camera Feed", finalFrame);
+			break;
+		}
+		case 4: {
+			std::thread thread1(capture1 >> frame1);
+			std::thread thread2(capture2 >> frame2);
+			std::thread thread3(capture3 >> frame3);
+			std::thread thread4(capture4 >> frame4);
+			thread1.join(); thread2.join(); thread3.join(); thread4.join();
+			matArray1 = { frame1, frame2 };
+			matArray2 = { frame3, frame4 };
+			std::thread thread7(stitcher->stitch(matArray1, stitchedFrame1));
+			std::thread thread8(stitcher->stitch(matArray2, stitchedFrame2));
+			thread7.join(); thread8.join();
+			stitchedArray = { stitchedFrame1, stitchedFrame2 };
+			std::thread thread10(stitcher->stitch(stitchedArray, finalFrame));
+			thread10.join();
+			//namedWindow("cam1", WINDOW_AUTOSIZE);
+			imshow("Camera Feed", finalFrame);
+			break;
+		}
+		case 5: {
+			std::thread thread1(capture1 >> frame1);
+			std::thread thread2(capture2 >> frame2);
+			std::thread thread3(capture3 >> frame3);
+			std::thread thread4(capture4 >> frame4);
+			std::thread thread5(capture5 >> frame5);
+			thread1.join(); thread2.join(); thread3.join(); thread4.join(); thread5.join();
+			matArray1 = { frame1, frame2 };
+			matArray2 = { frame3, frame4, frame5 };
+			std::thread thread7(stitcher->stitch(matArray1, stitchedFrame1));
+			std::thread thread8(stitcher->stitch(matArray2, stitchedFrame2));
+			thread7.join(); thread8.join();
+			stitchedArray = { stitchedFrame1, stitchedFrame2 };
+			std::thread thread10(stitcher->stitch(stitchedArray, finalFrame));
+			thread10.join();
+			//namedWindow("cam1", WINDOW_AUTOSIZE);
+			imshow("Camera Feed", finalFrame);
+			break;
+		}
+		case 6: {
+			std::thread thread1(capture1 >> frame1);
+			std::thread thread2(capture2 >> frame2);
+			std::thread thread3(capture3 >> frame3);
+			std::thread thread4(capture4 >> frame4);
+			std::thread thread5(capture5 >> frame5);
+			std::thread thread6(capture6 >> frame6);
+			thread1.join(); thread2.join(); thread3.join(); thread4.join(); thread5.join(); thread6.join();
+			matArray1 = { frame1, frame2 };
+			matArray2 = { frame3, frame4 };
+			matArray3 = { frame5, frame6 };
+			std::thread thread7(stitcher->stitch(matArray1, stitchedFrame1));
+			std::thread thread8(stitcher->stitch(matArray2, stitchedFrame2));
+			std::thread thread9(stitcher->stitch(matArray3, stitchedFrame3));
+			thread7.join(); thread8.join(); thread9.join();
+			stitchedArray = { stitchedFrame1, stitchedFrame2, stitchedFrame3 };
+			std::thread thread10(stitcher->stitch(stitchedArray, finalFrame));
+			thread10.join();
+			//namedWindow("cam1", WINDOW_AUTOSIZE);
+			imshow("Camera Feed", finalFrame);
+			break;
+		}
+		}
 		char key = waitKey(1);
-		if (char(key) == 27/*ESC*/) break;
+		if (char(key) == 27/*ESC*/)
+			break;
 	}
-	cams.clear();
-	return 0;
+
 }
