@@ -1,0 +1,63 @@
+#include <opencv2/core.hpp>
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>  // cv::Canny()
+#include <iostream>
+#include <vector>
+#include <thread>          
+
+using namespace std;
+using namespace cv;
+
+//global variables
+bool pause = true;
+VideoCapture capture1(0);
+Mat frame1;
+
+//stops stream
+void stopStream()
+{
+	pause = true;
+}
+
+//thread for running stream
+void runStream()
+{
+	pause = false;
+	while (!pause) {
+		if (capture1.isOpened()) { //avoid reading from an unopened device
+			capture1.read(frame1); //Reads frame
+			imshow("Camera Feed", frame1); //Display Frame
+		}
+		else {
+			break; // If no camera, breaks from method
+		}
+		int keypress = waitKey(1); //saving the pressed key
+		if (keypress == 27) {//if pressed Esc key breaks from method
+			pause = false;
+			break;
+		}
+		if (keypress == 32) {//if Spacebar
+			stopStream();
+		}
+	}
+}
+
+int main() {
+	cout << "Press spacebar to start and stop stream" << endl << "Press Esc to exit program" << endl;
+	runStream();
+	while (true) {
+		char key = waitKey(1);
+		switch (key) {
+		case 32: {
+			if (pause == true)
+				runStream();
+			else
+				break;
+		}
+		}
+		if (pause == false) {
+			break;
+		}
+	}
+}
