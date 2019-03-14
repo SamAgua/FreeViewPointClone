@@ -292,13 +292,8 @@ void stitchedView(int numCams) {
 			exit(0);
 			break;
 		case 1: {
-			//capture1 >> frame1;
-			frame1 = imread("S1.jpg", IMREAD_COLOR);
-			frame2 = imread("S2.jpg", IMREAD_COLOR);
-			stitchedArray = { frame1, frame2 };
-
-			finalFrame = stitchFrames(stitchedArray);
-			imshow("Camera Feed", finalFrame);
+			capture1 >> frame1;
+			imshow("Camera Feed", frame1);
 			break;
 		}
 		case 2: {
