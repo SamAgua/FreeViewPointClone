@@ -299,6 +299,7 @@ void stitchedView(int numCams) {
 		case 2: {
 			capture1 >> frame1;
 			capture2 >> frame2;
+			stitchedArray = { frame1, frame2};
 			finalFrame = stitchFrames(stitchedArray);
 			imshow("Camera Feed", finalFrame);
 			break;
@@ -365,10 +366,7 @@ Mat stitchFrames(std::vector<Mat> matArr) {
 	if (sFrame.empty()) {
 		cout << "Unable to pull from display " << endl;
 	}
-	if (status == Stitcher::OK) {
-		imshow("Camera Feed", sFrame);
-	}
-	else {
+	if (status != Stitcher::OK) {
 		cout << int(status) << endl;
 	}
 
