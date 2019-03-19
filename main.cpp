@@ -12,28 +12,31 @@ using namespace std;
 //Assigns cameras to variables
 
 bool pause = false;
+
+
 VideoCapture capture1(0);
 VideoCapture capture2(1);
+/*
 VideoCapture capture3(2);
 VideoCapture capture4(3);
 VideoCapture capture5(4);
 VideoCapture capture6(5);
-Mat blueFrame;
+*/
 Mat frame1;
 Mat frame2;
+/*
 Mat frame3;
 Mat frame4;
 Mat frame5;
 Mat frame6;
-Mat top;
-Mat bot;
+*/
 std::vector<Mat> matArray1 = {frame1, frame2};
+/*
 std::vector<Mat> matArray2;
 std::vector<Mat> matArray3;
-std::vector<Mat> stitchedArray;
+*/
 Mat finalFrame;
 //Creates the frame to hold the feed
-double frameRatio = 0.6;
 
 void stitchFrames(std::vector<Mat> arr);
 
@@ -65,6 +68,7 @@ void setFrame(Mat frame, VideoCapture cap, int cam) {
 	case 2:
 		matArray1[1] = frame;
 		break;
+		/*
 	case 3:
 		matArray2[0] = frame;
 		break;
@@ -77,6 +81,7 @@ void setFrame(Mat frame, VideoCapture cap, int cam) {
 	case 6:
 		matArray3[1] = frame;
 		break;
+		*/
 	default:
 		break;
 	}
@@ -103,10 +108,11 @@ void stitchedView(int numCams) {
 			t2.join();
 
 			stitchFrames(matArray1);
-		
+			resize(finalFrame, finalFrame, Size(500, 500));
 			imshow("Camera Feed", finalFrame);
 			break;
 		}
+				/*
 		case 3: {
 			capture1 >> frame1;
 			capture2 >> frame2;
@@ -153,6 +159,7 @@ void stitchedView(int numCams) {
 			imshow("Camera Feed", finalFrame);
 			break;
 		}
+		*/
 		}
 		char key = waitKey(1);
 		if (char(key) == 27)
@@ -172,6 +179,7 @@ void stitchFrames(std::vector<Mat> matArr) {
 		cout << int(status) << endl;
 	}
 }
+
 void singleDisplay(VideoCapture capture, Mat frame) {
 	pause = false;
 	while (!pause) {
@@ -203,6 +211,11 @@ int main(int, char**)
 	cout << "Press Spacebar to stop and start the stream" << endl;
 	//Endlessly scroll through loop using ESC
 	stitchedView(numCams);
-	
+	singleDisplay(capture1, frame1);
+	frame1.release();
+	frame2.release();
+	finalFrame.release();
+	capture1.release();
+	capture2.release();
 	return 0;
 }
