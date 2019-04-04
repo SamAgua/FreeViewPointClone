@@ -7,6 +7,8 @@
 #include <vector>
 #include <thread>
 #include <QtWidgets/QWidget>
+#include <QDialog>
+#include <QMessageBox>
 #include "ui_QtGuiApplication1.h"
 using namespace cv;
 using std::cout; using std::cerr; using std::endl; using std::vector;
@@ -15,10 +17,35 @@ class QtGuiApplication1 : public QWidget
 {
 	Q_OBJECT
 	 public:
-		void singleDisplay(VideoCapture capture, Mat frame);
+		 void singleDisplay(VideoCapture capture, Mat frame);
 		explicit QtGuiApplication1(QWidget *parent = 0);
 	 private slots:
-		void handleButton();
+		void handleExitButton();
+		void handleCam1Button();
+		void handleCam2Button();
+		void handleCam3Button();
+		void handleCam4Button();
+		void handleCam5Button();
+		void handleCam6Button();
+		void handleStitchedView();
+		void handleStartStream();
+		void handleStopStream();
+		void handleZoomIn();
+		void handleZoomOut();
+		void handleDistanceGauge();
+
 	 private:
-		QPushButton *m_button;
+		QPushButton *cam1Button;
+		QPushButton *cam2Button;
+		QPushButton *cam3Button;
+		QPushButton *cam4Button;
+		QPushButton *cam5Button;
+		QPushButton *cam6Button;
+		QPushButton *stitchedViewCam;
+		QPushButton *exitButton;
+		QPushButton *startStream;
+		QPushButton *stopStream;
+		QPushButton *zoomIn;
+		QPushButton *zoomOut;
+		QPushButton *distanceGauge;
 	};
