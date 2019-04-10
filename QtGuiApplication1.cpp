@@ -1,11 +1,4 @@
 #include "QtGuiApplication1.h"
-#include <opencv2/core.hpp>
-#include <opencv2/videoio.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>  // cv::Canny()
-#include <iostream>
-#include <vector>
-#include <thread>
 
 using namespace cv;
 using std::cout; using std::cerr; using std::endl; using std::vector;
@@ -28,10 +21,18 @@ Mat blueFrame = imread("Bb_blue.jpg", IMREAD_COLOR);
 bool pause = false;
 
 
+
+
 QtGuiApplication1::QtGuiApplication1(QWidget *parent)
 	: QWidget(parent)
 {
-
+	int numCams = 0;
+	for (int i = 0; i < 7; ++i) {
+		VideoCapture capture0(i);
+		if (capture0.isOpened()) {
+			numCams++;
+		}
+	}
 	// Create the button, make "this" the parent
 	cam1Button = new QPushButton("Cam1", this);
 	cam1Button->setGeometry(QRect(QPoint(50, 50),
@@ -67,6 +68,7 @@ QtGuiApplication1::QtGuiApplication1(QWidget *parent)
 		QSize(100, 50)));
 	connect(cam6Button, SIGNAL(released()), this, SLOT(handleCam6Button()));
 
+
 	stitchedViewCam = new QPushButton("StitchedView", this);
 	stitchedViewCam->setGeometry(QRect(QPoint(270, 100),
 		QSize(100, 50)));
@@ -98,9 +100,15 @@ QtGuiApplication1::QtGuiApplication1(QWidget *parent)
 
 	// Connect button signal to appropriate slot
 	distanceGauge = new QPushButton("Distance Gauge", this);
-	distanceGauge->setGeometry(QRect(QPoint(950, 100),
+	distanceGauge->setGeometry(QRect(QPoint(950, 50),
 		QSize(100, 50)));
-	connect(distanceGauge, SIGNAL(released()), this, SLOT(handleDistanceGauge()));
+	connect(distanceGauge, SIGNAL(released()), this, SLOT(handleSoundToggle()));
+	// Connect button signal to appropriate slot
+
+	soundToggle = new QPushButton("Alert Sound", this);
+	soundToggle->setGeometry(QRect(QPoint(950, 150),
+		QSize(100, 50)));
+	connect(soundToggle, SIGNAL(released()), this, SLOT(handleDistanceGauge()));
 
 	// Connect button signal to appropriate slot
 	exitButton = new QPushButton("Exit", this);
@@ -156,27 +164,44 @@ void QtGuiApplication1::handleCam6Button()
 }
 void QtGuiApplication1::handleStopStream()
 {
+	if (pause == true) {
+		QMessageBox::information(this, "Warning",
+			"Stream already stopped");
+	}
 	pause = true;
 }
 void QtGuiApplication1::handleStartStream()
 {
+	if (pause == false) {
+		QMessageBox::information(this, "Warning",
+			"Stream already running");
+	}
 	pause = false;
 }
 void QtGuiApplication1::handleStitchedView()
 {
-	
+	QMessageBox::information(this, "Warning",
+		"Button in progress");
 }
 void QtGuiApplication1::handleZoomOut()
 {
-
+	QMessageBox::information(this, "Warning",
+		"Button in progress");
 }
 void QtGuiApplication1::handleZoomIn()
 {
-
+	QMessageBox::information(this, "Warning",
+		"Button in progress");
 }
 void QtGuiApplication1::handleDistanceGauge()
 {
-
+	QMessageBox::information(this, "Warning",
+		"Button in progress");
+}
+void QtGuiApplication1::handleSoundToggle()
+{
+	QMessageBox::information(this, "Warning",
+		"Button in progress");
 }
 void QtGuiApplication1::handleExitButton()
 {

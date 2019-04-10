@@ -7,7 +7,9 @@
 #include <vector>
 #include <thread>
 #include <QtWidgets/QWidget>
+#include <QRadioButton>
 #include <QDialog>
+#include <qcombobox.h>
 #include <QMessageBox>
 #include "ui_QtGuiApplication1.h"
 using namespace cv;
@@ -33,6 +35,7 @@ class QtGuiApplication1 : public QWidget
 		void handleZoomIn();
 		void handleZoomOut();
 		void handleDistanceGauge();
+		void handleSoundToggle();
 
 	 private:
 		QPushButton *cam1Button;
@@ -48,4 +51,6 @@ class QtGuiApplication1 : public QWidget
 		QPushButton *zoomIn;
 		QPushButton *zoomOut;
 		QPushButton *distanceGauge;
+		QPushButton *soundToggle;
+		
 	};
