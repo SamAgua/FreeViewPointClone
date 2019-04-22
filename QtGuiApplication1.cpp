@@ -9,19 +9,9 @@ VideoCapture capture3(2);
 VideoCapture capture4(3);
 VideoCapture capture5(4);
 VideoCapture capture6(5);
-Mat frame1;
-Mat frame2;
-Mat frame3;
-Mat frame4;
-Mat frame5;
-Mat frame6;
-Mat blueFrame = imread("Bb_blue.jpg", IMREAD_COLOR);
-
-
+Mat finalFrame;
+double zoom = 1.0;
 bool pause = false;
-
-
-
 
 QtGuiApplication1::QtGuiApplication1(QWidget *parent)
 	: QWidget(parent)
@@ -99,32 +89,21 @@ QtGuiApplication1::QtGuiApplication1(QWidget *parent)
 	connect(zoomOut, SIGNAL(released()), this, SLOT(handleZoomOut()));
 
 	// Connect button signal to appropriate slot
-	distanceGauge = new QPushButton("Distance Gauge", this);
-	distanceGauge->setGeometry(QRect(QPoint(950, 50),
-		QSize(100, 50)));
-	connect(distanceGauge, SIGNAL(released()), this, SLOT(handleSoundToggle()));
-	// Connect button signal to appropriate slot
-
-	soundToggle = new QPushButton("Alert Sound", this);
-	soundToggle->setGeometry(QRect(QPoint(950, 150),
-		QSize(100, 50)));
-	connect(soundToggle, SIGNAL(released()), this, SLOT(handleDistanceGauge()));
-
-	// Connect button signal to appropriate slot
 	exitButton = new QPushButton("Exit", this);
-	exitButton->setGeometry(QRect(QPoint(1100, 50),
+	exitButton->setGeometry(QRect(QPoint(950, 50),
 		QSize(200, 150)));
 	connect(exitButton, SIGNAL(released()), this, SLOT(handleExitButton()));
 }
 
 
-void QtGuiApplication1::singleDisplay(VideoCapture capture, Mat frame) {
+void QtGuiApplication1::singleDisplay(VideoCapture capture) {
 	pause = false;
 	for (;;) {
 		if (capture.isOpened()) { //avoid reading from an unopened device
 
-			capture >> frame;
-			imshow("Camera Feed", frame); //Display Frame
+			capture >> finalFrame;
+			cv::resize(finalFrame, finalFrame, Size(), zoom, zoom);
+			imshow("Camera Feed", finalFrame); //Display Frame
 		}
 		else {
 			QMessageBox::information(this, "Warning",
@@ -140,27 +119,27 @@ void QtGuiApplication1::singleDisplay(VideoCapture capture, Mat frame) {
 
 void QtGuiApplication1::handleCam1Button()
 {
-	singleDisplay(capture1, frame1);
+	singleDisplay(capture1);
 }
 void QtGuiApplication1::handleCam2Button()
 {
-	singleDisplay(capture2, frame2);
+	singleDisplay(capture2);
 }
 void QtGuiApplication1::handleCam3Button()
 {
-	singleDisplay(capture3, frame3);
+	singleDisplay(capture3);
 }
 void QtGuiApplication1::handleCam4Button()
 {
-	singleDisplay(capture4, frame4);
+	singleDisplay(capture4);
 }
 void QtGuiApplication1::handleCam5Button()
 {
-	singleDisplay(capture5, frame5);
+	singleDisplay(capture5);
 }
 void QtGuiApplication1::handleCam6Button()
 {
-	singleDisplay(capture6, frame6);
+	singleDisplay(capture6);
 }
 void QtGuiApplication1::handleStopStream()
 {
@@ -185,24 +164,34 @@ void QtGuiApplication1::handleStitchedView()
 }
 void QtGuiApplication1::handleZoomOut()
 {
-	QMessageBox::information(this, "Warning",
-		"Button in progress");
+	if (zoom < .4) {
+		QMessageBox::information(this, "Warning",
+			"Cannot zoom out any further");
+	}
+	else {
+		zoom = zoom - .3;
+	}
+	if (pause) {
+		cv::resize(finalFrame, finalFrame, Size(), zoom, zoom);
+		imshow("Camera Feed", finalFrame); //Display Frame
+	}
 }
+	
 void QtGuiApplication1::handleZoomIn()
 {
-	QMessageBox::information(this, "Warning",
-		"Button in progress");
+	if (zoom > 2.5) {
+		QMessageBox::information(this, "Warning",
+			"Cannot zoom in any further");
+	}
+	else {
+		zoom = zoom + .3;
+	}
+	if (pause) {
+		cv::resize(finalFrame, finalFrame, Size(), zoom, zoom);
+		imshow("Camera Feed", finalFrame); //Display Frame
+	}
 }
-void QtGuiApplication1::handleDistanceGauge()
-{
-	QMessageBox::information(this, "Warning",
-		"Button in progress");
-}
-void QtGuiApplication1::handleSoundToggle()
-{
-	QMessageBox::information(this, "Warning",
-		"Button in progress");
-}
+
 void QtGuiApplication1::handleExitButton()
 {
 	capture1.release();

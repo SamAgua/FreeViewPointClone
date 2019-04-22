@@ -19,7 +19,7 @@ class QtGuiApplication1 : public QWidget
 {
 	Q_OBJECT
 	 public:
-		 void singleDisplay(VideoCapture capture, Mat frame);
+		 void singleDisplay(VideoCapture capture);
 		explicit QtGuiApplication1(QWidget *parent = 0);
 	 private slots:
 		void handleExitButton();
@@ -34,8 +34,7 @@ class QtGuiApplication1 : public QWidget
 		void handleStopStream();
 		void handleZoomIn();
 		void handleZoomOut();
-		void handleDistanceGauge();
-		void handleSoundToggle();
+
 
 	 private:
 		QPushButton *cam1Button;
@@ -50,7 +49,6 @@ class QtGuiApplication1 : public QWidget
 		QPushButton *stopStream;
 		QPushButton *zoomIn;
 		QPushButton *zoomOut;
-		QPushButton *distanceGauge;
-		QPushButton *soundToggle;
+
 		
 	};
