@@ -9,9 +9,12 @@
 #include <QtWidgets/QWidget>
 #include <QRadioButton>
 #include <QDialog>
-#include <qcombobox.h>
+#include <qpixmap.h>
 #include <QMessageBox>
 #include "ui_QtGuiApplication1.h"
+#include <qlabel.h>
+#include <QGraphicsPixmapItem>
+#include <qgraphicsview.h>
 using namespace cv;
 using std::cout; using std::cerr; using std::endl; using std::vector;
 using namespace std;
@@ -49,6 +52,7 @@ class QtGuiApplication1 : public QWidget
 		QPushButton *stopStream;
 		QPushButton *zoomIn;
 		QPushButton *zoomOut;
-
-		
+		QLabel *myLabel;
+		QGraphicsPixmapItem *pixmap;
+		QGraphicsView *view;
 	};
