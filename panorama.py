@@ -12,6 +12,7 @@ class Stitcher:
     # unpack the images, then detect keypoints and extract
     # local invariant descriptors from them
     #(imageB, imageA) = images
+        '''threading here would be good'''
         (kpsA, featuresA) = self.detectAndDescribe(imageA)
         (kpsB, featuresB) = self.detectAndDescribe(imageB)
 
@@ -28,58 +29,25 @@ class Stitcher:
     # together
         (matches, H, status) = M
     # check to see if the keypoint matches should be visualized
+        '''skip this part'''
         if showMatches:
             (vis, maxA, minB) = self.drawMatches(imageA, imageB, kpsA, kpsB, matches,
             status)
-
-        # return a tuple of the stitched image and the
-        # visualization
-            #return (result, vis)
-            if warp:
-                result = np.zeros((imageB.shape[0], imageA.shape[1] + imageB.shape[1],
-                           3), dtype="uint8")
-                Bresult = cv2.warpPerspective(imageB, H,
-            (imageB.shape[1], imageB.shape[0]), cv2.INTER_NEAREST)
-                
-                result[0:imageA.shape[0], 0:imageA.shape[1]] = imageA
-                result[0:imageA.shape[0],imageA.shape[1]: ] = Bresult
-                return (result, vis)
-
             result = np.zeros((imageB.shape[0], maxA + imageB.shape[1]-minB,
                            3), dtype="uint8")
-            result[0:imageA.shape[0], 0:maxA] = imageA[0:imageA.shape[0], 0:maxA]
-            result[0:imageA.shape[0],maxA: ] = imageB[0:imageB.shape[0],
-                                                                  minB: ]
             return (result, vis)
+        '''this down'''
         else:
             (maxA, minB) = self.findMaxMinPts(imageA, imageB, kpsA, kpsB, matches,
-                                              status)
-            if warp:
-                result = np.zeros((imageB.shape[0], imageA.shape[1] + imageB.shape[1],
-                           3), dtype="uint8")
-    # create warped imgB to be stitched onto imgA
-                Bresult = cv2.warpPerspective(imageB, H,
-            (imageB.shape[1], imageB.shape[0]), cv2.INTER_NEAREST)
-                
-                result[0:imageA.shape[0], 0:imageA.shape[1]] = imageA
-                result[0:imageA.shape[0],imageA.shape[1]: ] = Bresult
-                return (result)
+            status)
     # create 3d array to hold panoramic view
-            result = np.zeros((imageB.shape[0], maxA + imageB.shape[1]-minB,
+            result = np.zeros((imageB.shape[0],imageB.shape[1]*2,
                            3), dtype="uint8")
-            result[0:imageA.shape[0], 0:maxA] = imageA[0:imageA.shape[0], 0:maxA]
-            result[0:imageA.shape[0],maxA: ] = imageB[0:imageB.shape[0],
-                                                                  minB: ]
+        # Add imgA to result, then add warped imgB
+            result[0:imageA.shape[0], 0:imageA.shape[1]] = cv2.resize(imageA[0:imageA.shape[0], 0:maxA], (480, 640))
+            result[0:imageA.shape[0], imageA.shape[1]: ] = cv2.resize(imageB[0:imageB.shape[0], minB: ], (480, 640))
+        # return the stitched image                                                          
             return (result)
-        
-    
-        
-    # Add imgA to result, then add warped imgB
-          
-
-    
-
-    # return the stitched image
 
     def detectAndDescribe(self, image):
     # convert the image to grayscale
@@ -119,7 +87,7 @@ class Stitcher:
         # other (i.e. Lowe's ratio test)
             if len(m) == 2 and m[0].distance < m[1].distance * ratio:
                 matches.append((m[0].trainIdx, m[0].queryIdx))
-        print(len(matches))
+        print("matches:", len(matches))
 
     # computing a homography requires at least 4 matches
         if len(matches) > 4:
@@ -148,7 +116,7 @@ class Stitcher:
 
     # loop over the matches
         maxA = 0
-        minB = wB
+        maxB = 0
         for ((trainIdx, queryIdx), s) in zip(matches, status):
         # only process the match if the keypoint was successfully
         # matched
@@ -156,14 +124,14 @@ class Stitcher:
             # draw the match
                 ptA = (int(kpsA[queryIdx][0]), int(kpsA[queryIdx][1]))
                 ptB = (int(kpsB[trainIdx][0]) + wA, int(kpsB[trainIdx][1]))
+                cv2.line(vis, ptA, ptB, (0, 255, 0), 1)
                 if (int(kpsA[queryIdx][0]) > maxA):
                     maxA = int(kpsA[queryIdx][0])
-                if (int(kpsB[trainIdx][0]) < minB):
-                    minB = int(kpsB[trainIdx][0])
-                cv2.line(vis, ptA, ptB, (0, 255, 0), 1)
-
-    # return the visualization
-        return (vis, maxA, minB)
+                if (int(kpsB[trainIdx][0]) > maxB):
+                    maxB = int(kpsB[trainIdx][0])    # return the visualization
+                    maxA = maxA + ((wA - maxA)/2)
+                    maxB = maxB/2
+        return (vis, int(maxA), int(maxB))
     
     def findMaxMinPts(self, imageA, imageB, kpsA, kpsB, matches, status):
     # initialize the output visualization image
@@ -176,18 +144,23 @@ class Stitcher:
     # loop over the matches
         maxA = 0
         maxB = 0
+        counter = 0
         for ((trainIdx, queryIdx), s) in zip(matches, status):
         # only process the match if the keypoint was successfully
         # matched
             if s == 1:
             # draw the match
+                counter += 1
                 ptA = (int(kpsA[queryIdx][0]), int(kpsA[queryIdx][1]))
                 ptB = (int(kpsB[trainIdx][0]) + wA, int(kpsB[trainIdx][1]))
-                if (int(kpsA[queryIdx][0]) > maxA):
-                    maxA = int(kpsA[queryIdx][0])
-                if (int(kpsB[trainIdx][0]) > maxB):
-                    maxB = int(kpsB[trainIdx][0])
-                #cv2.line(vis, ptA, ptB, (0, 255, 0), 1)
-
+                
+                maxA += int(kpsA[queryIdx][0])
+                
+                maxB += int(kpsB[trainIdx][0])
+                
+        maxA = int(maxA/counter)
+        
+        maxB = int(maxB/counter)
+        
     # return the visualization
-        return (maxA, maxB)
+        return (int(maxA), int(maxB))
