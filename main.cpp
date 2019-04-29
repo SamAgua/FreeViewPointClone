@@ -1,11 +1,10 @@
-#include "QtGuiApplication1.h"
+#include "ViewpointSynthesis.h"
 #include <QtWidgets/QApplication>
-
 
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
-	QtGuiApplication1 w;
+	ViewpointSynthesis w;
 	w.show();
 	return a.exec();
 }
