@@ -10,14 +10,23 @@ VideoCapture capture6(5);
 Mat capturedFrame;
 Mat resizedFrame;
 Mat resize2;
-double framesPerSec = 0.0;
 
-Mat src;
-Mat src2;
+Mat src = imread("iqbal1.png", IMREAD_COLOR);
+Mat src2 = imread("iqbal2.png", IMREAD_COLOR);
+
 //Sizes for the frames
 Rect myROI(32, 24, 576, 432);
+Rect myROIs(25, 24, 687, 432);
 Rect myROI2(64, 48, 512, 384);
 Rect myROI3(128, 96, 384, 288);
+
+// timer
+auto start = std::chrono::system_clock::now();
+bool runOnce = true;
+int left1 = 0;
+int right1 = 0;
+
+
 //Y Spacer
 int ySpace = 480;
 //Used for detirmining zoom
@@ -26,11 +35,11 @@ double zoom = 1.0;
 bool isStopped = false;
 int numCams = 0;
 //Creates the buttons and space for the image display
-ViewpointSynthesis::ViewpointSynthesis(QWidget *parent)
+ViewpointSynthesis::ViewpointSynthesis(QWidget* parent)
 	: QWidget(parent)
 {
 	//Counts the number of active cameras
-	
+
 	for (int i = 0; i < 7; ++i) {
 		VideoCapture capture0(i);
 		if (capture0.isOpened()) {
@@ -39,8 +48,8 @@ ViewpointSynthesis::ViewpointSynthesis(QWidget *parent)
 	}
 	//Creates a label that will be used to display the captured images
 	myLabel = new QLabel("", this);
-	myLabel->setGeometry(QRect(QPoint(275, 0),
-		QSize(500, 500)));
+	myLabel->setGeometry(QRect(QPoint(100, 0),
+		QSize(720, 480)));
 	//Creates a button for each active camera
 	if (numCams >= 1) {
 		cam1Button = new QPushButton("Cam1", this);
@@ -78,7 +87,7 @@ ViewpointSynthesis::ViewpointSynthesis(QWidget *parent)
 			QSize(100, 50)));
 		connect(cam6Button, SIGNAL(released()), this, SLOT(handleCam6Button()));
 	}
-	
+
 	//Creates a button for the stitched view function
 	stitchedViewCam = new QPushButton("StitchedView", this);
 	stitchedViewCam->setGeometry(QRect(QPoint(270, 100 + ySpace),
@@ -127,8 +136,8 @@ void ViewpointSynthesis::singleDisplay(VideoCapture capture) {
 	isStopped = false;
 	capture >> capturedFrame;
 	resizedFrame = capturedFrame(myROI);
-	myLabel->setGeometry(QRect(QPoint(275, 0),
-		QSize(resizedFrame.cols, resizedFrame.rows)));
+	myLabel->setGeometry(QRect(QPoint(250, 0),
+		QSize(720, 480)));
 	for (;;) {
 		if (capture.isOpened()) { //avoid reading from an unopened device
 			capture >> capturedFrame;
@@ -151,27 +160,28 @@ void ViewpointSynthesis::singleDisplay(VideoCapture capture) {
 //This functions takes an OpenCV mat as an argument
 QPixmap ViewpointSynthesis::convertImage(Mat capturedFrame) {
 	//Resizes the frame according to the amount of zoom that is currently being applied
-	cv::resize(resizedFrame, resize2, Size(capturedFrame.cols, capturedFrame.rows));
+	cv::resize(resizedFrame, resize2, Size(720, 480));
 	//converts the mat to RGB for qt
 	cvtColor(resize2, resize2, COLOR_RGB2BGR);
 	//Create a new image using the capturedFrame frame data
-	QImage img((uchar*)resize2.data, resize2.cols, resize2.rows, QImage::Format_RGB888);
+	QImage img((uchar*)resize2.data, 720, 480, QImage::Format_RGB888);
 	//Sets a pixel map to the image
 	QPixmap pixmap = QPixmap::fromImage(img);
 	return pixmap;
 }
 
-Mat ViewpointSynthesis::stitchImages() {
-	const double nn_match_ratio = 0.7f; // Nearest-neighbour matching ratio
-	capture1 >> src;
-	capture3 >> src2;
+Mat ViewpointSynthesis::stitchImages(int &left, int &right) {
+	const double nn_match_ratio = 0.8f; // Nearest-neighbour matching ratio
+	capture2 >> src;
+	capture1 >> src2;
+	
 
 	//-- Step 1: Detect the keypoints using SURF Detector
-	int minHessian = 400;
+	int minHessian = 500;
 	Mat desc1, desc2;
 	Ptr<ORB> detector = ORB::create();
 	detector->setMaxFeatures(minHessian);
-	Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
+	Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create(DescriptorMatcher::BRUTEFORCE_HAMMING);
 	std::vector<KeyPoint> keypoints1, keypoints2;
 
 	detector->detectAndCompute(src, noArray(), keypoints1, desc1);
@@ -189,56 +199,63 @@ Mat ViewpointSynthesis::stitchImages() {
 			matched2.push_back(keypoints2[knn_matches[i][0].trainIdx]);
 		}
 	}
-	int max1 = 0;
-	int max2 = 0;
-	std::vector<KeyPoint>::const_iterator it = matched1.begin(), end = matched1.end();
-	for (; it != end; ++it) {
-		if (it->pt.x > max1) {
-			max1 = it->pt.x;
-		}
-	}
-	std::vector<KeyPoint>::const_iterator it2 = matched2.begin(), end2 = matched2.end();
-	for (; it2 != end2; ++it2) {
-		if (it2->pt.x > max2) {
-			max2 = it2->pt.x;
-		}
-	}
-	int left = max1;
-	int right = max2;
-		std::cout << max1 << " " << max2 << std::endl;
+	auto endtime = std::chrono::system_clock::now();
+	std::chrono::duration<double> elapsed_secs = endtime - start;
+	if (elapsed_secs.count() >= 2 || runOnce == true) {
 
-		int h = 600;
-	Mat test = cv::Mat::zeros(cv::Size(340 * 2, h), CV_8UC3);
-	Mat small1 = cv::Mat(src, cv::Rect(0, 0, max1, src.rows));
-	cv::resize(small1, small1, cv::Size(340, h), 0, 0);
+		int max1 = 0;
+		int max2 = 0;
+		std::vector<KeyPoint>::const_iterator it = matched1.begin(), end = matched1.end();
+		for (; it != end; ++it) {
+			//if (it->pt.x > max1) {
+			max1 += it->pt.x;
+			//}
+		}
+		std::vector<KeyPoint>::const_iterator it2 = matched2.begin(), end2 = matched2.end();
+		for (; it2 != end2; ++it2) {
+			//if (it2->pt.x < max2) {
+			max2 += it2->pt.x;
+			//}
+		}
+
+		 left = max1 / matched1.size();
+		 right = max2 / matched1.size();
+		runOnce = false;
+		start = std::chrono::system_clock::now();
+	}
+	//std::cout << left << " " << right << std::endl;
+
+	int h = 480;
+	Mat test = cv::Mat::zeros(cv::Size(720, h), CV_8UC3);
+	Mat small1 = cv::Mat(src, cv::Rect(0, 0, left, src.rows));
+	cv::resize(small1, small1, cv::Size(360, h), 0, 0);
 	//cv::Rect myROI(max2, 0, src2.cols, src2.rows);
 
-	Mat small2 = src2(Rect(max2, 0, src2.cols - max2, src2.rows));
-	cv::resize(small2, small2, cv::Size(340, h), 0, 0);
+	Mat small2 = Mat( src2, Rect(right, 0, src2.cols - right, src2.rows));
+	cv::resize(small2, small2, cv::Size(360, h), 0, 0);
 
 	small1.copyTo(test(Rect(0, 0, small1.cols, h)));
 	small2.copyTo(test(Rect(small1.cols, 0, small2.cols, small2.rows)));
 	//drawMatches(src, matched1, src2, matched2, knn_matches, img_matches, Scalar(255,0,0),
 	//	Scalar(255, 0, 0));
 	//-- Show detected matches
-
 	return test;
 }
 void ViewpointSynthesis::stitchedDisplay() {
 	zoom = 1.0;
 	isStopped = false;
-	capturedFrame = stitchImages();
-	resizedFrame = capturedFrame(myROI);
+	capturedFrame = stitchImages(left1, right1);
+	resizedFrame = capturedFrame(myROIs);
 	if (numCams < 2) {
 		QMessageBox::information(this, "Warning",
 			"Not enough cameras");
 	}
 	else {
 		for (;;) {
-			capturedFrame = stitchImages();
-			resizedFrame = capturedFrame(myROI);
-			myLabel->setGeometry(QRect(QPoint(275, 0),
-				QSize(resizedFrame.cols, resizedFrame.rows)));
+			capturedFrame = stitchImages(left1, right1);
+			resizedFrame = capturedFrame(myROIs);
+			myLabel->setGeometry(QRect(QPoint(250, 0),
+				QSize(720, 480)));
 			myLabel->setPixmap(convertImage(capturedFrame));
 			int keypress = waitKey(1); //Prevent infinite loop
 			while (isStopped) {
