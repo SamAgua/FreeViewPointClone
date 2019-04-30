@@ -10,10 +10,10 @@ VideoCapture capture6(5);
 Mat capturedFrame;
 Mat resizedFrame;
 Mat resize2;
+double framesPerSec = 0.0;
 
-Mat src = imread("iqbal1.png", IMREAD_COLOR);
-Mat src2 = imread("iqbal2.png", IMREAD_COLOR);
-
+Mat src;
+Mat src2;
 //Sizes for the frames
 Rect myROI(32, 24, 576, 432);
 Rect myROI2(64, 48, 512, 384);
@@ -162,12 +162,12 @@ QPixmap ViewpointSynthesis::convertImage(Mat capturedFrame) {
 }
 
 Mat ViewpointSynthesis::stitchImages() {
-	const double nn_match_ratio = 0.8f; // Nearest-neighbour matching ratio
+	const double nn_match_ratio = 0.7f; // Nearest-neighbour matching ratio
 	capture1 >> src;
 	capture3 >> src2;
 
 	//-- Step 1: Detect the keypoints using SURF Detector
-	int minHessian = 500;
+	int minHessian = 400;
 	Mat desc1, desc2;
 	Ptr<ORB> detector = ORB::create();
 	detector->setMaxFeatures(minHessian);
@@ -203,8 +203,8 @@ Mat ViewpointSynthesis::stitchImages() {
 			max2 = it2->pt.x;
 		}
 	}
-	int left = max1 / matched1.size();
-	int right = max2 / matched1.size();
+	int left = max1;
+	int right = max2;
 		std::cout << max1 << " " << max2 << std::endl;
 
 		int h = 600;
@@ -221,6 +221,7 @@ Mat ViewpointSynthesis::stitchImages() {
 	//drawMatches(src, matched1, src2, matched2, knn_matches, img_matches, Scalar(255,0,0),
 	//	Scalar(255, 0, 0));
 	//-- Show detected matches
+
 	return test;
 }
 void ViewpointSynthesis::stitchedDisplay() {
