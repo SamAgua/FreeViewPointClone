@@ -18,6 +18,7 @@
 #include <QGraphicsPixmapItem>
 #include <qgraphicsview.h>
 #include <fstream>
+#include <chrono>
 using namespace cv::xfeatures2d;
 using namespace cv;
 using std::cout; using std::cerr; using std::endl; using std::vector;
@@ -30,9 +31,9 @@ class ViewpointSynthesis : public QWidget
 public:
 	void singleDisplay(VideoCapture capture);
 	void stitchedDisplay();
-	Mat stitchImages();
+	Mat stitchImages(int &left, int &right);
 	QPixmap convertImage(Mat finalFrame);
-	ViewpointSynthesis(QWidget *parent = Q_NULLPTR);
+	ViewpointSynthesis(QWidget* parent = Q_NULLPTR);
 
 private slots:
 	void handleExitButton();
@@ -49,18 +50,18 @@ private slots:
 	void handleZoomOut();
 
 private:
-	QPushButton *cam1Button;
-	QPushButton *cam2Button;
-	QPushButton *cam3Button;
-	QPushButton *cam4Button;
-	QPushButton *cam5Button;
-	QPushButton *cam6Button;
-	QPushButton *stitchedViewCam;
-	QPushButton *exitButton;
-	QPushButton *startStream;
-	QPushButton *stopStream;
-	QPushButton *zoomIn;
-	QPushButton *zoomOut;
-	QLabel *myLabel;
-	QGraphicsPixmapItem *pixmap;
+	QPushButton* cam1Button;
+	QPushButton* cam2Button;
+	QPushButton* cam3Button;
+	QPushButton* cam4Button;
+	QPushButton* cam5Button;
+	QPushButton* cam6Button;
+	QPushButton* stitchedViewCam;
+	QPushButton* exitButton;
+	QPushButton* startStream;
+	QPushButton* stopStream;
+	QPushButton* zoomIn;
+	QPushButton* zoomOut;
+	QLabel* myLabel;
+	QGraphicsPixmapItem* pixmap;
 };
