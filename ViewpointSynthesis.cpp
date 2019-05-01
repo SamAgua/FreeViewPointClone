@@ -154,6 +154,8 @@ ViewpointSynthesis::ViewpointSynthesis(QWidget* parent)
 //The frame is resized to fit the gui and then calls convert image to return a pixmap
 //The pixmap is then inserted into the label and displayed on the screen
 void ViewpointSynthesis::singleDisplay(VideoCapture capture) {
+	zoomIn->setEnabled(true);
+	zoomOut->setEnabled(true);
 	zoom = 1.0;
 	isStopped = false;
 	capture >> capturedFrame;
@@ -179,7 +181,8 @@ void ViewpointSynthesis::singleDisplay(VideoCapture capture) {
 }
 
 void ViewpointSynthesis::gridDisplay() {
-
+	zoomIn->setEnabled(false);
+	zoomOut->setEnabled(false);
 	zoom = 1.0;
 	isStopped = false;
 	blueFrame = imread("Bb_blue.jpg", IMREAD_COLOR);
@@ -423,6 +426,8 @@ Mat ViewpointSynthesis::stitchImages(int &left, int &right) {
 	}
 }
 void ViewpointSynthesis::stitchedDisplay() {
+	zoomIn->setEnabled(true);
+	zoomOut->setEnabled(true);
 	zoom = 1.0;
 	isStopped = false;
 	capturedFrame = stitchImages(left1, right1);
