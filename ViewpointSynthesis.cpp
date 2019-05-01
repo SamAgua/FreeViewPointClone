@@ -31,6 +31,7 @@ Mat src;
 Mat src2;
 
 //Sizes for the frames
+Rect blankROI(32, 24, 576, 432);
 Rect myROI(32, 24, 576, 432);
 Rect myROIs(25, 24, 687, 432);
 Rect myROI2(64, 48, 512, 384);
@@ -232,8 +233,8 @@ Mat ViewpointSynthesis::setGrid() {
 	}
 	case 1: {
 		capture1 >> frame1;
-		cv::resize(frame1, frame1, Size(240,240));
-		cv::resize(blueFrame, blueFrame, Size(240,240));
+		cv::resize(frame1, frame1, Size(240, 240));
+		cv::resize(blueFrame, blueFrame, Size(240, 240));
 		frame2 = blueFrame;
 		frame3 = blueFrame;
 		frame4 = blueFrame;
@@ -341,12 +342,12 @@ Mat ViewpointSynthesis::setGrid() {
 		hconcat(matArray2, bot);
 		vconcat(top, bot, gridFrame);
 		break;
-		}
+	}
 	}
 	return gridFrame;
 }
 
-Mat ViewpointSynthesis::stitchImages(int &left, int &right) {
+Mat ViewpointSynthesis::stitchImages(int& left, int& right) {
 	blueFrame = imread("Bb_blue.jpg", IMREAD_COLOR);
 	if (numCams >= 2) {
 		const double nn_match_ratio = 0.8f; // Nearest-neighbour matching ratio
@@ -379,59 +380,75 @@ Mat ViewpointSynthesis::stitchImages(int &left, int &right) {
 		}
 		auto endtime = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_secs = endtime - start;
-		if (elapsed_secs.count() >= 2 || runOnce == true) {
+		if (elapsed_secs.count() >= 1 || runOnce == true) {
 
-			int max1 = 0;
+			int max1 = 1000;
 			int max2 = 0;
 			std::vector<KeyPoint>::const_iterator it = matched1.begin(), end = matched1.end();
 			for (; it != end; ++it) {
-				//if (it->pt.x > max1) {
-				max1 += it->pt.x;
-				//}
+				if (it->pt.x < max1) {
+					max1 = it->pt.x;
+				}
 			}
 			std::vector<KeyPoint>::const_iterator it2 = matched2.begin(), end2 = matched2.end();
 			for (; it2 != end2; ++it2) {
-				//if (it2->pt.x < max2) {
-				max2 += it2->pt.x;
-				//}
+				if (it2->pt.x > max2) {
+					max2 = it2->pt.x;
+				}
 			}
 
-			left = max1 / matched1.size();
-			right = max2 / matched1.size();
+			left = max1 + 32;
+			right = max2;
 			runOnce = false;
 			start = std::chrono::system_clock::now();
 		}
 		//std::cout << left << " " << right << std::endl;
 
 		int h = 480;
+		Mat merge;
 		Mat test = cv::Mat::zeros(cv::Size(720, h), CV_8UC3);
+		Mat test1 = cv::Mat(src, cv::Rect(left, 0, src.cols - left, src.rows));
+		Mat test2 = cv::Mat(src2, cv::Rect(0, 0, right, src2.rows));
+
+		cv::resize(test1, test1, cv::Size(480, h), 0, 0);
+		cv::resize(test2, test2, cv::Size(480, h), 0, 0);
+		double alpha = 0.1;
+		double beta = 1 - alpha;
+		//multiply(test2, Scalar(1, 1, 1, 0.5), test2);
+		cv::addWeighted(test1, alpha, test2, beta, 0.0, merge);
+
 		Mat small1 = cv::Mat(src, cv::Rect(0, 0, left, src.rows));
-		cv::resize(small1, small1, cv::Size(360, h), 0, 0);
+		cv::resize(small1, small1, cv::Size(120, h), 0, 0);
 		//cv::Rect myROI(max2, 0, src2.cols, src2.rows);
 
 		Mat small2 = Mat(src2, Rect(right, 0, src2.cols - right, src2.rows));
-		cv::resize(small2, small2, cv::Size(360, h), 0, 0);
+		cv::resize(small2, small2, cv::Size(120, h), 0, 0);
 
 		small1.copyTo(test(Rect(0, 0, small1.cols, h)));
-		small2.copyTo(test(Rect(small1.cols, 0, small2.cols, small2.rows)));
+		merge.copyTo(test(Rect(small1.cols, 0, merge.cols, h)));
+		small2.copyTo(test(Rect(small1.cols + merge.cols, 0, small2.cols, small2.rows)));
 		//drawMatches(src, matched1, src2, matched2, knn_matches, img_matches, Scalar(255,0,0),
 		//	Scalar(255, 0, 0));
 		//-- Show detected matches
 		return test;
-	}
-	else {
+	}else {
 		QMessageBox::information(this, "Warning",
 			"Not enough cameras");
 		return blueFrame;
 	}
 }
+
 void ViewpointSynthesis::stitchedDisplay() {
 	zoomIn->setEnabled(true);
 	zoomOut->setEnabled(true);
 	zoom = 1.0;
 	isStopped = false;
 	capturedFrame = stitchImages(left1, right1);
+	blankROI = myROIs;
 	resizedFrame = capturedFrame(myROIs);
+	if (zoom == 2) {
+		blankROI = myROI2;
+	}
 	if (numCams < 2) {
 		QMessageBox::information(this, "Warning",
 			"Not enough cameras");
@@ -439,10 +456,10 @@ void ViewpointSynthesis::stitchedDisplay() {
 	else {
 		for (;;) {
 			capturedFrame = stitchImages(left1, right1);
-			resizedFrame = capturedFrame(myROIs);
+			resizedFrame = capturedFrame(blankROI);
 			myLabel->setGeometry(QRect(QPoint(250, 0),
 				QSize(720, 480)));
-			myLabel->setPixmap(convertImage(capturedFrame));
+			myLabel->setPixmap(convertImage(resizedFrame));
 			int keypress = waitKey(1); //Prevent infinite loop
 			while (isStopped) {
 				int keypress = waitKey(1); //Prevent infinite loop
