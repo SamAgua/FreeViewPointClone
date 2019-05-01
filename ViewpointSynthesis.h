@@ -31,9 +31,12 @@ class ViewpointSynthesis : public QWidget
 public:
 	void singleDisplay(VideoCapture capture);
 	void stitchedDisplay();
+	void gridDisplay();
 	Mat stitchImages(int &left, int &right);
+	Mat setGrid();
 	QPixmap convertImage(Mat finalFrame);
 	ViewpointSynthesis(QWidget* parent = Q_NULLPTR);
+	
 
 private slots:
 	void handleExitButton();
@@ -44,6 +47,7 @@ private slots:
 	void handleCam5Button();
 	void handleCam6Button();
 	void handleStitchedView();
+	void handleGridView();
 	void handleStartStream();
 	void handleStopStream();
 	void handleZoomIn();
@@ -57,6 +61,7 @@ private:
 	QPushButton* cam5Button;
 	QPushButton* cam6Button;
 	QPushButton* stitchedViewCam;
+	QPushButton* gridView;
 	QPushButton* exitButton;
 	QPushButton* startStream;
 	QPushButton* stopStream;
