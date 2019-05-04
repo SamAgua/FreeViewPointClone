@@ -42,7 +42,7 @@ int main() {
 				}
 			}
 			else {
-				cout << "nope: " << status << endl;
+				cout << "nope: not enough keypoints or images " << status << endl;
 				break;
 			}
 	}
