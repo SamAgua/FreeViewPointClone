@@ -2,6 +2,7 @@
 #include "opencv2/features2d.hpp"
 #include "opencv2/xfeatures2d.hpp"
 #include "opencv2/xfeatures2d/nonfree.hpp"
+#include <opencv2/videoio.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
@@ -32,6 +33,7 @@ public:
 	void singleDisplay(VideoCapture capture);
 	void stitchedDisplay();
 	void gridDisplay();
+	void recordCameras();
 	Mat stitchImages(int &left, int &right);
 	Mat setGrid();
 	QPixmap convertImage(Mat finalFrame);
@@ -47,6 +49,7 @@ private slots:
 	void handleCam5Button();
 	void handleCam6Button();
 	void handleStitchedView();
+	void handleRecordButton();
 	void handleGridView();
 	void handleStartStream();
 	void handleStopStream();
@@ -61,6 +64,7 @@ private:
 	QPushButton* cam5Button;
 	QPushButton* cam6Button;
 	QPushButton* stitchedViewCam;
+	QPushButton* recordButton;
 	QPushButton* gridView;
 	QPushButton* exitButton;
 	QPushButton* startStream;

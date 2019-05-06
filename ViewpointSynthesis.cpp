@@ -104,12 +104,19 @@ ViewpointSynthesis::ViewpointSynthesis(QWidget* parent)
 			QSize(100, 50)));
 		connect(cam6Button, SIGNAL(released()), this, SLOT(handleCam6Button()));
 	}
-
+	/*
 	//Creates a button for the stitched view function
 	stitchedViewCam = new QPushButton("Stitched View", this);
 	stitchedViewCam->setGeometry(QRect(QPoint(270, 50 + ySpace),
 		QSize(100, 50)));
 	connect(stitchedViewCam, SIGNAL(released()), this, SLOT(handleStitchedView()));
+	*/
+
+	//Creates a button for the stitched view function
+	recordButton = new QPushButton("Record", this);
+	recordButton->setGeometry(QRect(QPoint(270, 50 + ySpace),
+		QSize(100, 50)));
+	connect(recordButton, SIGNAL(released()), this, SLOT(handleRecordButton()));
 
 	//Creates a button for the grid view function
 	gridView = new QPushButton("Grid View", this);
@@ -146,9 +153,11 @@ ViewpointSynthesis::ViewpointSynthesis(QWidget* parent)
 	exitButton->setGeometry(QRect(QPoint(950, 50 + ySpace),
 		QSize(200, 150)));
 	connect(exitButton, SIGNAL(released()), this, SLOT(handleExitButton()));
+
 	if (numCams < 2) {
-		stitchedViewCam->setEnabled(false);
+		//stitchedViewCam->setEnabled(false);
 	}
+
 }
 
 
@@ -370,80 +379,72 @@ Mat ViewpointSynthesis::stitchImages(int& left, int& right) {
 		detector->detectAndCompute(src2, noArray(), keypoints2, desc2);
 
 		std::vector< std::vector<DMatch> > knn_matches;
-		bool catcher;
 		matcher->knnMatch(desc1, desc2, knn_matches, 2);
 		//-- Filter matches using the Lowe's ratio test
 
-		if (knn_matches.size() <= 50) {
-			Mat test;
-			vconcat(src, src2, test);
-			cv::resize(test, test, cv::Size(720, 480), 0, 0);
-			return test;
+		//std::vector< std::vector<DMatch> > good_matches;
+		std::vector<KeyPoint> matched1, matched2;
+		for (unsigned i = 0; i < knn_matches.size(); i++) {
+			if (knn_matches[i][0].distance < nn_match_ratio * knn_matches[i][1].distance) {
+				matched1.push_back(keypoints1[knn_matches[i][0].queryIdx]);
+				matched2.push_back(keypoints2[knn_matches[i][0].trainIdx]);
+			}
 		}
-		else {
-			//std::vector< std::vector<DMatch> > good_matches;
-			std::vector<KeyPoint> matched1, matched2;
-			for (unsigned i = 0; i < knn_matches.size(); i++) {
-				if (knn_matches[i][0].distance < nn_match_ratio * knn_matches[i][1].distance) {
-					matched1.push_back(keypoints1[knn_matches[i][0].queryIdx]);
-					matched2.push_back(keypoints2[knn_matches[i][0].trainIdx]);
+		auto endtime = std::chrono::system_clock::now();
+		std::chrono::duration<double> elapsed_secs = endtime - start;
+		if (elapsed_secs.count() >= 1 || runOnce == true) {
+
+			int max1 = 1000;
+			int max2 = 0;
+			std::vector<KeyPoint>::const_iterator it = matched1.begin(), end = matched1.end();
+			for (; it != end; ++it) {
+				if (it->pt.x < max1) {
+					max1 = it->pt.x;
 				}
 			}
-			auto endtime = std::chrono::system_clock::now();
-			std::chrono::duration<double> elapsed_secs = endtime - start;
-			if (elapsed_secs.count() >= 1 || runOnce == true) {
-
-				int max1 = 1000;
-				int max2 = 0;
-				std::vector<KeyPoint>::const_iterator it = matched1.begin(), end = matched1.end();
-				for (; it != end; ++it) {
-					if (it->pt.x < max1) {
-						max1 = it->pt.x;
-					}
+			std::vector<KeyPoint>::const_iterator it2 = matched2.begin(), end2 = matched2.end();
+			for (; it2 != end2; ++it2) {
+				if (it2->pt.x > max2) {
+					max2 = it2->pt.x;
 				}
-				std::vector<KeyPoint>::const_iterator it2 = matched2.begin(), end2 = matched2.end();
-				for (; it2 != end2; ++it2) {
-					if (it2->pt.x > max2) {
-						max2 = it2->pt.x;
-					}
-				}
-
-				left = max1 + 32;
-				right = max2;
-				runOnce = false;
-				start = std::chrono::system_clock::now();
 			}
-			//std::cout << left << " " << right << std::endl;
 
-			int h = 480;
-			Mat merge;
-			Mat test = cv::Mat::zeros(cv::Size(720, h), CV_8UC3);
-			Mat test1 = cv::Mat(src, cv::Rect(left, 0, src.cols - left, src.rows));
-			Mat test2 = cv::Mat(src2, cv::Rect(0, 0, right, src2.rows));
-
-			cv::resize(test1, test1, cv::Size(480, h), 0, 0);
-			cv::resize(test2, test2, cv::Size(480, h), 0, 0);
-			double alpha = 0.1;
-			double beta = 1 - alpha;
-			//multiply(test2, Scalar(1, 1, 1, 0.5), test2);
-			cv::addWeighted(test1, alpha, test2, beta, 0.0, merge);
-
-			Mat small1 = cv::Mat(src, cv::Rect(0, 0, left, src.rows));
-			cv::resize(small1, small1, cv::Size(120, h), 0, 0);
-			//cv::Rect myROI(max2, 0, src2.cols, src2.rows);
-
-			Mat small2 = Mat(src2, Rect(right, 0, src2.cols - right, src2.rows));
-			cv::resize(small2, small2, cv::Size(120, h), 0, 0);
-
-			small1.copyTo(test(Rect(0, 0, small1.cols, h)));
-			merge.copyTo(test(Rect(small1.cols, 0, merge.cols, h)));
-			small2.copyTo(test(Rect(small1.cols + merge.cols, 0, small2.cols, small2.rows)));
-			//drawMatches(src, matched1, src2, matched2, knn_matches, img_matches, Scalar(255,0,0),
-			//	Scalar(255, 0, 0));
-			//-- Show detected matches
-			return test;
+			left = max1 + 32;
+			right = max2;
+			runOnce = false;
+			start = std::chrono::system_clock::now();
 		}
-	}else {
+		//std::cout << left << " " << right << std::endl;
+
+		int h = 480;
+		Mat merge;
+		Mat test = cv::Mat::zeros(cv::Size(720, h), CV_8UC3);
+		Mat test1 = cv::Mat(src, cv::Rect(left, 0, src.cols - left, src.rows));
+		Mat test2 = cv::Mat(src2, cv::Rect(0, 0, right, src2.rows));
+
+		cv::resize(test1, test1, cv::Size(480, h), 0, 0);
+		cv::resize(test2, test2, cv::Size(480, h), 0, 0);
+		double alpha = 0.1;
+		double beta = 1 - alpha;
+		//multiply(test2, Scalar(1, 1, 1, 0.5), test2);
+		cv::addWeighted(test1, alpha, test2, beta, 0.0, merge);
+
+		Mat small1 = cv::Mat(src, cv::Rect(0, 0, left, src.rows));
+		cv::resize(small1, small1, cv::Size(120, h), 0, 0);
+		//cv::Rect myROI(max2, 0, src2.cols, src2.rows);
+
+		Mat small2 = Mat(src2, Rect(right, 0, src2.cols - right, src2.rows));
+		cv::resize(small2, small2, cv::Size(120, h), 0, 0);
+
+		small1.copyTo(test(Rect(0, 0, small1.cols, h)));
+		merge.copyTo(test(Rect(small1.cols, 0, merge.cols, h)));
+		small2.copyTo(test(Rect(small1.cols + merge.cols, 0, small2.cols, small2.rows)));
+		//drawMatches(src, matched1, src2, matched2, knn_matches, img_matches, Scalar(255,0,0),
+		//	Scalar(255, 0, 0));
+		//-- Show detected matches
+		return test;
+	}
+	else {
 		QMessageBox::information(this, "Warning",
 			"Not enough cameras");
 		return blueFrame;
@@ -479,6 +480,49 @@ void ViewpointSynthesis::stitchedDisplay() {
 		}
 	}
 }
+
+
+void ViewpointSynthesis::recordCameras() {
+	Mat src;
+	Mat src1;
+	// use default camera as video source
+	VideoCapture cap(0);
+	VideoCapture cap1(1);
+	cap >> src;
+	cap1 >> src1;
+	bool isColor = (src.type() == CV_8UC3);
+	//--- INITIALIZE VIDEOWRITER
+	VideoWriter writer;
+	VideoWriter writer1;
+	int codec = VideoWriter::fourcc('M', 'J', 'P', 'G');  // select desired codec (must be available at runtime)
+	double fps = 25.0;                          // framerate of the created video stream
+	string filename1 = "./cam1.avi";
+	string filename2= "./cam2.avi";// name of the output video file
+	writer.open(filename1, codec, fps, src.size(), isColor);
+	writer1.open(filename2, codec, fps, src1.size(), isColor);
+	//--- GRAB AND WRITE LOOP
+	while(!isStopped)
+	{
+		// check if we succeeded
+		if (!cap.read(src)) {
+			cerr << "ERROR! blank frame grabbed\n";
+			break;
+		}
+		if (!cap1.read(src1)) {
+			cerr << "ERROR! blank frame grabbed\n";
+			break;
+		}
+		// encode the frame into the videofile stream
+		writer.write(src);
+		writer1.write(src1);
+		// show live and wait for a key with timeout long enough to show images
+		imshow("Live", src);
+		imshow("Live1", src1);
+		if (waitKey(5) >= 0)
+			break;
+	}
+}
+
 //Handlers for buttons cam1-cam6
 void ViewpointSynthesis::handleGridView()
 {
@@ -533,6 +577,11 @@ void ViewpointSynthesis::handleStartStream()
 void ViewpointSynthesis::handleStitchedView()
 {
 	stitchedDisplay();
+}
+
+void ViewpointSynthesis::handleRecordButton()
+{
+	recordCameras();
 }
 //Handles the zoom out button and sets the proper zoom value
 //If zoomed out too much, an error message will appear
