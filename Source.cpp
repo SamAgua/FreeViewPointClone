@@ -7,6 +7,7 @@ using namespace cv;
 using namespace std;
 int main(int, char**)
 {
+	//Writing video files
 	Mat src;
 	// use default camera as video source
 	VideoCapture cap(0);
@@ -53,7 +54,11 @@ int main(int, char**)
 	}
 
 	int i = waitKey(5);
+	
 
+
+	//Reading video files
+	//Reuses src
 	VideoCapture cap1("./live.avi");
 
 	// Check if camera opened successfully
